@@ -1,16 +1,21 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+error_reporting(E_ERROR);
+ini_set('display_errors', 'On');
+require_once '../bootstrap.php';
 
 use NFePHP\NFe\Tools;
 use NFePHP\NFe\Make;
 use NFePHP\Common\Certificate;
-use NFePHP\Common\Soap\SoapCurl;
+use NFePHP\Common\Soap\SoapFake;
 
-class ExampleTest extends TestCase 
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class testNFceNovo extends TestCase
 {
     /**
      * A basic test example.
@@ -38,10 +43,10 @@ class ExampleTest extends TestCase
             ]
         ];
         $configJson = json_encode($arr);
-        $pfxcontent = file_get_contents('app/fixtures/expired_certificate.pfx');        
+        $pfxcontent = file_get_contents('uuuuuu/fixtures/expired_certificate.pfx');        
         
         $tools = new Tools($configJson, Certificate::readPfx($pfxcontent, 'associacao'));
-        //$tools->disableCertValidation(true); //tem que desabilitar
+        $tools->disableCertValidation(true); //tem que desabilitar
         $tools->model('65');
         
         try {
@@ -170,12 +175,12 @@ class ExampleTest extends TestCase
             $make->taginfAdProd($tag);
         
             //Imposto 
-            $stdImposto = new \stdClass();
+            $stdImposto = new stdClass();
             $stdImposto->item = 1; //item da NFe
             $stdImposto->vTotTrib = 25.00;
             $make->tagimposto($std);
         
-            $std = new \stdClass();
+            $std = new stdClass();
             $std->item = 1; //item da NFe
             $std->orig = 0;
             $std->CSOSN = '102';
@@ -209,7 +214,7 @@ class ExampleTest extends TestCase
             $make->tagICMSSN($std);
         
             //PIS
-            $std = new \stdClass();
+            $std = new stdClass();
             $std->item = 1; //item da NFe
             $std->CST = '99';
             //$std->vBC = 1200;
@@ -220,7 +225,7 @@ class ExampleTest extends TestCase
             $pis = $make->tagPIS($std);
         
             //COFINS
-            $std = new \stdClass();
+            $std = new stdClass();
             $std->item = 1; //item da NFe
             $std->CST = '99';
             $std->vBC = null;
@@ -257,7 +262,7 @@ class ExampleTest extends TestCase
             $std->infCpl = '';
             $info = $make->taginfadic($std);
         
-            $std = new \stdClass();
+            $std = new stdClass();
             $std->CNPJ = '60735090220'; //CNPJ da pessoa jurídica responsável pelo sistema utilizado na emissão do documento fiscal eletrônico
             $std->xContato = 'claudemir@cal-comp.com.br'; //Nome da pessoa a ser contatada
             $std->email = 'claudemir@cal-comp.com.br'; //E-mail da pessoa jurídica a ser contatada

@@ -1,0 +1,7 @@
+## PARA INSTALAR A DEPENDÊNCIAS
+compose update
+
+## PARA EXECUTAR TEST
+.\vendor\bin\phpunit
+
+

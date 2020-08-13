@@ -1,30 +1,33 @@
 <?php
 
-namespace Tests\Unit;
+namespace App\Services;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-use NFePHP\NFe\Tools;
+use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Make;
+use NFePHP\NFe\Tools;
 use NFePHP\Common\Certificate;
 use NFePHP\Common\Soap\SoapCurl;
 
-class ExampleTest extends TestCase 
-{
-    /**
-     * A basic test example.
-     *
-     * @return void
-     */
-    public function testExample()
+class NFeService {
+
+    private $config;
+    private $tools;
+
+    public function _construct($config){      
+        
+        $this->config = $config;
+        //$pfxcontent = file_get_contents('../app/fixtures/07200194000380.pfx');
+        //$this->tools = new Tools( json_encode($config), Certificate::readPfx($pfxcontent, 'calcomp01'));
+    }
+
+    public function gerarNFe()
     {
         $arr = [
             "atualizacao" => "2017-02-20 09:11:21",
             "tpAmb"       => 2,
             "razaosocial" => "SUA RAZAO SOCIAL LTDA",
             "cnpj"        => "99999999999999",
-            "siglaUF"     => "SP",
+            "siglaUF"     => "AM",
             "schemes"     => "PL_009_V4",
             "versao"      => '4.00',
             "tokenIBPT"   => "AAAAAAA",
@@ -38,25 +41,24 @@ class ExampleTest extends TestCase
             ]
         ];
         $configJson = json_encode($arr);
-        $pfxcontent = file_get_contents('app/fixtures/expired_certificate.pfx');        
+        $pfxcontent = file_get_contents('../app/fixtures/07200194000380.pfx');
         
-        $tools = new Tools($configJson, Certificate::readPfx($pfxcontent, 'associacao'));
+        $tools = new Tools( $configJson, Certificate::readPfx($pfxcontent, 'calcomp01'));
         //$tools->disableCertValidation(true); //tem que desabilitar
         $tools->model('65');
-        
-        try {
-        
+        try {        
             $make = new Make();        
         
             //infNFe OBRIGATÓRIA
-            $std = new \stdClass();
-            $std->Id = '';
-            $std->versao = '4.00';
-            $infNFe = $make->taginfNFe($std);
+            $stdInfNFe = new \stdClass();
+            $stdInfNFe->Id = '';
+            $stdInfNFe->versao = '4.00';
+            $stdInfNFe->pk_nItem = null;
+            $infNFe = $make->taginfNFe($stdInfNFe);
         
             //IDENTIFICAÇÃO OBRIGATÓRIA
             $stdIde = new \stdClass();
-            $stdIde->cUF = 14;
+            $stdIde->cUF = 13;
             $stdIde->cNF = '21785364';
             $stdIde->natOp = 'RETORNO MERC.P/IND. NAO APLICD';
             $stdIde->mod = 55;
@@ -79,7 +81,7 @@ class ExampleTest extends TestCase
             $stdIde->dhCont = null;
             $stdIde->xJust = null;
             $ide = $make->tagIde($stdIde);
-        
+            
             //EMITENTE OBRIGATÓRIA
             $stdEmit = new \stdClass();
             $stdEmit->xNome = 'CAL-COMP  IND.COM.ELETR. INFORM LTDA';
@@ -118,7 +120,7 @@ class ExampleTest extends TestCase
             $stdDest->IE = '062000918';
             //$std->ISUF = '12345679';
             //$std->IM = 'XYZ6543212';
-            $stdDest->email = 'claudemir@cal-comp.com.br';
+            $stdDest->email = 'claudemir@mail.com';
             $dest = $make->tagdest($stdDest);
         
             //enderDest OPCIONAL
@@ -134,7 +136,7 @@ class ExampleTest extends TestCase
             $enderDest->cPais = 1058;
             $enderDest->xPais = 'BRASIL';
             $enderDest->fone = '8007016674';
-            $ret = $make->tagenderdest($enderDest);        
+            $ret = $make->tagenderdest($enderDest);
         
             //prod OBRIGATÓRIA
             $stdProd = new \stdClass();
@@ -143,7 +145,7 @@ class ExampleTest extends TestCase
             $stdProd->cEAN = "SEM GTIN";
             $stdProd->xProd = 'RESISTOR C-FILME 330';
             $stdProd->NCM = 85332190;
-            //$std->cBenef = 'ab222222';
+            //$stdProd->cBenef = 'ab222222';
             $stdProd->EXTIPI = '';
             $stdProd->CFOP = 5903;
             $stdProd->uCom = 'PC';
@@ -154,14 +156,14 @@ class ExampleTest extends TestCase
             $stdProd->uTrib = 'UN';
             $stdProd->qTrib = 65076.0000;
             $stdProd->vUnTrib = 0.0030000000;
-            //$std->vFrete = 0.00;
-            //$std->vSeg = 0;
-            //$std->vDesc = 0;
-            //$std->vOutro = 0;
-            $std->indTot = 1;
-            $std->xPed = 'BV20200805';
-            //$std->nItemPed = 1;
-            //$std->nFCI = '12345678-1234-1234-1234-123456789012';
+            //$stdProd->vFrete = 0.00;
+            //$stdProd->vSeg = 0;
+            //$stdProd->vDesc = 0;
+            //$stdProd->vOutro = 0;
+            $stdProd->indTot = 1;
+            $stdProd->xPed = 'BV20200805';
+            //$stdProd->nItemPed = 1;
+            //$stdProd->nFCI = '12345678-1234-1234-1234-123456789012';
             $prod = $make->tagprod($stdProd);
         
             $tag = new \stdClass();
@@ -173,7 +175,7 @@ class ExampleTest extends TestCase
             $stdImposto = new \stdClass();
             $stdImposto->item = 1; //item da NFe
             $stdImposto->vTotTrib = 25.00;
-            $make->tagimposto($std);
+            $make->tagimposto($stdImposto);
         
             $std = new \stdClass();
             $std->item = 1; //item da NFe
@@ -209,16 +211,16 @@ class ExampleTest extends TestCase
             $make->tagICMSSN($std);
         
             //PIS
-            $std = new \stdClass();
-            $std->item = 1; //item da NFe
-            $std->CST = '99';
+            $stdPis = new \stdClass();
+            $stdPis->item = 1; //item da NFe
+            $stdPis->CST = '99';
             //$std->vBC = 1200;
             //$std->pPIS = 0;
-            $std->vPIS = 0.00;
-            $std->qBCProd = 0;
-            $std->vAliqProd = 0;
-            $pis = $make->tagPIS($std);
-        
+            $stdPis->vPIS = 0.00;
+            $stdPis->qBCProd = 0;
+            $stdPis->vAliqProd = 0;
+            $pis = $make->tagPIS($stdPis);
+
             //COFINS
             $std = new \stdClass();
             $std->item = 1; //item da NFe
@@ -229,56 +231,89 @@ class ExampleTest extends TestCase
             $std->qBCProd = 0;
             $std->vAliqProd = 0;
             $make->tagCOFINS($std);
-        
+
             //icmstot OBRIGATÓRIA
-            $std = new \stdClass();
-            $icmstot = $make->tagicmstot($std);
+            $stdIcmstot = new \stdClass();
+            $icmstot = $make->tagicmstot($stdIcmstot);
         
             //transp OBRIGATÓRIA
-            $std = new \stdClass();
-            $std->modFrete = 0;
-            $transp = $make->tagtransp($std);        
-        
-            //pag OBRIGATÓRIA
-            $std = new \stdClass();
-            $std->vTroco = 0;
-            $pag = $make->tagpag($std);
+            $stdTransp = new \stdClass();
+            $stdTransp->modFrete = 0;
+            $transp = $make->tagtransp($stdTransp);  
+
+            $stdPag = new \stdClass();
+            //$stdPag->vTroco = 0;
+            $pag = $make->tagpag($stdPag);
         
             //detPag OBRIGATÓRIA
-            $std = new \stdClass();
-            $std->indPag = 1;
-            $std->tPag = '01';
-            $std->vPag = 100.00;
-            $detpag = $make->tagdetpag($std);
+            $stdDetPag = new \stdClass();
+            //$stdDetPag->indPag = 1;
+            $stdDetPag->tPag = '90';
+            $stdDetPag->vPag = 0.00;
+            $detpag = $make->tagdetpag($stdDetPag); 
         
             //infadic
-            $std = new \stdClass();
-            $std->infAdFisco = '';
-            $std->infCpl = '';
-            $info = $make->taginfadic($std);
+            $stdInfadic = new \stdClass();
+            $stdInfadic->infAdFisco = '';
+            $stdInfadic->infCpl = '';
+            $info = $make->taginfadic($stdInfadic);
         
-            $std = new \stdClass();
-            $std->CNPJ = '60735090220'; //CNPJ da pessoa jurídica responsável pelo sistema utilizado na emissão do documento fiscal eletrônico
-            $std->xContato = 'claudemir@cal-comp.com.br'; //Nome da pessoa a ser contatada
-            $std->email = 'claudemir@cal-comp.com.br'; //E-mail da pessoa jurídica a ser contatada
-            $std->fone = '1155551122'; //Telefone da pessoa jurídica/física a ser contatada
+            $stdResp = new \stdClass();
+            $stdResp->CNPJ = '07200194000118'; //CNPJ da pessoa jurídica responsável pelo sistema utilizado na emissão do documento fiscal eletrônico
+            $stdResp->xContato = 'claudemir@gmail.com'; //Nome da pessoa a ser contatada
+            $stdResp->email = 'claudemir@mail.com'; //E-mail da pessoa jurídica a ser contatada
+            $stdResp->fone = '1155551122'; //Telefone da pessoa jurídica/física a ser contatada
             //$std->CSRT = 'G8063VRTNDMO886SFNK5LDUDEI24XJ22YIPO'; //Código de Segurança do Responsável Técnico
             //$std->idCSRT = '01'; //Identificador do CSRT
-            $make->taginfRespTec($std);
+            $make->taginfRespTec($stdResp);    
         
             $make->monta();
-            $xml = $make->getXML();            
-        
+            $xml = $make->getXML();        
             $xml = $tools->signNFe($xml);
-            
             header('Content-Type: application/xml; charset=utf-8');
-            echo $xml;            
 
-            $this->assertTrue(false);
-            
+            $xmlAssinado = $tools->signNFe($xml);
+
+            echo $xmlAssinado;
+            /*
+            try {
+                $idLote = str_pad(100, 15, '0', STR_PAD_LEFT); 
+                $resp = $tools->sefazEnviaLote([$xml], $idLote);
+
+                $st = new Standardize();
+                $std = $st->toStd($resp);
+
+                echo $std;
+            } catch (\Exception $e) {
+                //aqui você trata possiveis exceptions do envio
+                exit($e->getMessage());
+            }
+            */
+                        
         } catch (\Exception $e) {
-            $this->assertTrue(false);
             echo $e->getMessage();
+            
         } 
     }
+
+    public function sign( $xml){
+        return $this->tools->signNFe($xml);
+    }
+
+    public function transmitir( $xmlAssinado){
+        $idLote = str_pad(100, 15, '0', STR_PAD_LEFT); // Identificador do lote
+        $resp = $this->tools->sefazEnviaLote([$xmlAssinado], $idLote);
+        $st = new Standardize();
+        $std = $st->toStd($resp);
+        
+        if ($std->cStat != 103) {
+            //erro registrar e voltar
+            exit("[$std->cStat] $std->xMotivo");
+         }
+         $recibo = $std->infRec->nRec;
+
+        $tools = new Tools($configJson, NFePHP\Common\Certificate::readPfx($certificadoDigital, 'senha do certificado'));
+        return $tools->sefazEnviaLote();
+    }
+
 }

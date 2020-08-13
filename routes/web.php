@@ -27,6 +27,8 @@ Route::post('/curso/adiciona', 'CursoController@adiciona');
 
 Route::get('/curso/json', 'CursoController@listaJson');
 
+Route::get('/curso/xml', 'CursoController@xml');
+
 Route::get('/curso/remove/{id}', 'CursoController@remove');
 
 // Aluno
@@ -60,3 +62,10 @@ Route::post('/professor/adiciona', 'ProfessorController@adiciona');
 Route::get('/professor/json', 'ProfessorController@listaJson');
 
 Route::get('/professor/remove/{id}', 'ProfessorController@remove');
+
+//
+Route::get('/nfe', 'NFeController@index');
+
+Route::get('/nfe/xml', 'NFeController@listaXml');
+
+Route::get('/nfe/store', 'NFeController@store');
